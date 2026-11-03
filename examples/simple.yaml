@@ -1,0 +1,13 @@
+schemas:
+  - name: TrafficLog
+    fields:
+      - name: time
+        type: u64
+      - name: handle_time
+        type: u16
+  - name: SensorData
+    fields:
+      - name: x_cord
+        type: i16
+      - name: y_cord
+        type: i16
