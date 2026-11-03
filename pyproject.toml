@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 dependencies = ["pyyaml>=6.0.3"]
 
 [project.scripts]
-schema-serializer = "schema_serializer.__main__:main"
+schema-serializer = "serializer.__main__:main"
 
 [build-system]
 requires = ["hatchling"]
