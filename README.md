@@ -4,6 +4,13 @@ Data serilization framework for high preformance applications.
 
 Define the shape of your data in a yaml file then use the python library to generate code for serilzation and deserilzation in C++.
 
+## Running the project
+
+```bash
+uv sync
+uv run schema-serializer examples/simple.yaml
+```
+
 ## Schema Options
 
 Every schema must be organized as follows:
@@ -28,6 +35,7 @@ schemas:
 
 | Type | Size | Description |
 | ------ | ------ | ------------- |
+| `char` | 1 bytes | ASCII 8-bit charecter |
 | `u8` | 1 byte | Unsigned 8-bit integer |
 | `u16` | 2 bytes | Unsigned 16-bit integer |
 | `u32` | 4 bytes | Unsigned 32-bit integer |
