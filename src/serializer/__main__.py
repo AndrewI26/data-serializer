@@ -2,7 +2,16 @@ import sys
 
 import yaml
 
+from serializer.schema import Schemas
+
 HELP_MSG = "Usage: uv run serializer path/to/schema.yaml"
+
+
+def parse_schema(path: str) -> Schemas:
+    with open(path, "r") as file:
+        data = yaml.safe_load(file)
+
+    return Schemas.model_validate(data)
 
 
 def main():
@@ -16,9 +25,9 @@ def main():
     if not filename:
         print("Must pass in filename")
 
-    with open(filename, "r") as file:
-        data = yaml.safe_load(file)
-        print(data)
+    data = parse_schema(filename)
+
+    print(data)
 
 
 if __name__ == "__main__":
