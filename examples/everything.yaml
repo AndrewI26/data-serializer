@@ -1,0 +1,23 @@
+schemas:
+  - name: TestSchema
+    fields:
+      - name: field_u64
+        type: u64
+      - name: field_i64
+        type: i64
+      - name: field_f64
+        type: f64
+      - name: field_u32
+        type: u32
+      - name: field_i32
+        type: i32
+      - name: field_f32
+        type: f32
+      - name: field_u16
+        type: u16
+      - name: field_i16
+        type: i16
+      - name: field_u8
+        type: u8
+      - name: field_i8
+        type: i8
