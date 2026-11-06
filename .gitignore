@@ -9,3 +9,5 @@ venv/
 .pyright/
 .ruff_cache/
 .DS_Store
+
+generated/

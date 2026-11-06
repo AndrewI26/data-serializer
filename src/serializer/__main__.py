@@ -3,6 +3,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
+from serializer.codegen import generate
 from serializer.schema import Schemas
 
 HELP_MSG = "Usage: uv run serializer path/to/schema.yaml"
@@ -33,7 +34,8 @@ def main():
     args = CLIArgs.model_validate(vars(parsed))
 
     data = Schemas.from_yaml(Path(args.filename))
-    print(data)
+
+    generate(data, args.output)
 
 
 if __name__ == "__main__":
