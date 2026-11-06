@@ -1,4 +1,8 @@
 {% for schema in schemas %}
-struct {{schema.name }}
+struct {{ schema.name }} {
+    {% for field in schema.fields %}
+    {{ field.type | cpp_type }} {{ field.name }}
+    {% endfor %}
+}
 
 {% endfor %}
