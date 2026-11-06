@@ -1,5 +1,8 @@
 from enum import Enum
+from pathlib import Path
+from typing import Self
 
+import yaml
 from pydantic import BaseModel, ConfigDict
 
 
@@ -34,3 +37,10 @@ class Schemas(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     schemas: list[Schema]
+
+    @classmethod
+    def from_yaml(cls, path: Path) -> Self:
+        with path.open("r") as file:
+            data = yaml.safe_load(file)
+
+        return cls.model_validate(data)

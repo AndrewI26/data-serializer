@@ -1,32 +1,38 @@
-import sys
+import argparse
+from pathlib import Path
 
-import yaml
+from pydantic import BaseModel, ConfigDict
 
 from serializer.schema import Schemas
 
 HELP_MSG = "Usage: uv run serializer path/to/schema.yaml"
 
 
-def parse_schema(path: str) -> Schemas:
-    with open(path, "r") as file:
-        data = yaml.safe_load(file)
+class CLIArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
-    return Schemas.model_validate(data)
+    filename: Path
+    output: Path = Path("generated")
 
 
 def main():
-    try:
-        filename = sys.argv[1]
-    except IndexError:
-        print("Error: Missing input YAML file.", file=sys.stderr)
-        print(HELP_MSG, file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        prog="bin-serializer",
+        description="Generate binary (de)serializer from YAML schemas.",
+    )
+    parser.add_argument("filename", type=Path, help="Path to the YAML schema file.")
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=Path("generated"),
+        help="Directory for generated code.",
+    )
 
-    if not filename:
-        print("Must pass in filename")
+    parsed = parser.parse_args()
+    args = CLIArgs.model_validate(vars(parsed))
 
-    data = parse_schema(filename)
-
+    data = Schemas.from_yaml(Path(args.filename))
     print(data)
 
 
