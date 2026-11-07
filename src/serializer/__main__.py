@@ -16,12 +16,18 @@ class UsageMode(Enum):
     BOTH = "both"
 
 
+class Target(Enum):
+    CPP = "cpp"
+    RUST = "rust"
+
+
 class CLIArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     filename: Path
     output: Path = Path("generated")
-    usage_mode: UsageMode = UsageMode.BOTH
+    mode: UsageMode = UsageMode.BOTH
+    target: Target
 
 
 def main():
@@ -36,6 +42,21 @@ def main():
         type=Path,
         default=Path("generated"),
         help="Directory for generated code.",
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        type=UsageMode,
+        choices=[mode for mode in UsageMode if mode != UsageMode.BOTH],
+        default=UsageMode.BOTH,
+        help="Specifies which type of code to generate.",
+    )
+    parser.add_argument(
+        "-t",
+        "--target",
+        type=Target,
+        choices=Target,
+        help="Target for generated code.",
     )
 
     parsed = parser.parse_args()

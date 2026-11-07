@@ -14,7 +14,7 @@ def pascal_case(value: str) -> str:
     return "".join(word.capitalize() for word in words)
 
 
-def generate(schemas: Schemas, output: Path) -> None:
+def generate(schemas: Schemas, output: Path, target: Target) -> None:
     env = Environment(
         loader=FileSystemLoader(TEMPLATE_DIR),
         autoescape=False,
