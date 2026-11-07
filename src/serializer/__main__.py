@@ -1,4 +1,5 @@
 import argparse
+from enum import Enum
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
@@ -9,11 +10,18 @@ from serializer.schema import Schemas
 HELP_MSG = "Usage: uv run serializer path/to/schema.yaml"
 
 
+class UsageMode(Enum):
+    SERIALIZATION = "serialize"
+    DESERIALIZE = "deserialize"
+    BOTH = "both"
+
+
 class CLIArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     filename: Path
     output: Path = Path("generated")
+    usage_mode: UsageMode = UsageMode.BOTH
 
 
 def main():

@@ -1,0 +1,10 @@
+// AUTO-GENERATED do not edit
+
+#include <cstdint>
+
+{% for schema in schemas %}
+struct {{ schema.name }} {
+    {% for field in schema.fields %}
+    {{ field.type.cpp }} {{ field.name }};
+    {% endfor %}
+};

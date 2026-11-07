@@ -1,11 +1,7 @@
-#include <cstdint>
+// AUTO-GENERATED do not edit
 
-{% for schema in schemas %}
-struct {{ schema.name }} {
-    {% for field in schema.fields %}
-    {{ field.type.cpp }} {{ field.name }};
-    {% endfor %}
-};
+#include <type_traits>
+#include <cstddef>
 
 template <typename T>
 inline void serialize(const T& msg, std::byte* buf) {
