@@ -7,4 +7,10 @@ struct {{ schema.name }} {
     {% endfor %}
 };
 
+template <typename T>
+inline void serialize(const T& msg, std::byte* buf) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    std::memcpy(buf, &msg, sizeof(T));
+}
+
 {% endfor %}
