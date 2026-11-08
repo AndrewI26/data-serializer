@@ -1,24 +1,12 @@
 import argparse
-from enum import Enum
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
-from serializer.codegen import generate
+from serializer.codegen import Target, UsageMode, generate
 from serializer.schema import Schemas
 
 HELP_MSG = "Usage: uv run serializer path/to/schema.yaml"
-
-
-class UsageMode(Enum):
-    SERIALIZATION = "serialize"
-    DESERIALIZE = "deserialize"
-    BOTH = "both"
-
-
-class Target(Enum):
-    CPP = "cpp"
-    RUST = "rust"
 
 
 class CLIArgs(BaseModel):
@@ -44,6 +32,14 @@ def main():
         help="Directory for generated code.",
     )
     parser.add_argument(
+        "-t",
+        "--target",
+        type=Target,
+        choices=Target,
+        default=Target.CPP,
+        help="Target for generated code.",
+    )
+    parser.add_argument(
         "-m",
         "--mode",
         type=UsageMode,
@@ -51,20 +47,13 @@ def main():
         default=UsageMode.BOTH,
         help="Specifies which type of code to generate.",
     )
-    parser.add_argument(
-        "-t",
-        "--target",
-        type=Target,
-        choices=Target,
-        help="Target for generated code.",
-    )
 
     parsed = parser.parse_args()
     args = CLIArgs.model_validate(vars(parsed))
 
     data = Schemas.from_yaml(Path(args.filename))
 
-    generate(data, args.output)
+    generate(data, args.output, args.target)
 
 
 if __name__ == "__main__":
