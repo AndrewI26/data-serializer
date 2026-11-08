@@ -1,0 +1,20 @@
+// AUTO-GENERATED do not edit
+
+#pragma once
+
+#include <cstddef>
+#include <cstring>
+#include <type_traits>
+
+#include "schemas.hpp"
+
+// Writes msg into buf. Returns the number of bytes written, or 0 if buf is too small.
+template <typename T>
+inline std::size_t serialize(const T& msg, std::byte* buf, std::size_t buf_len) noexcept {
+    static_assert(std::is_trivially_copyable_v<T>);
+    if (buf_len < sizeof(T)) {
+        return 0;
+    }
+    std::memcpy(buf, &msg, sizeof(T));
+    return sizeof(T);
+}

@@ -88,6 +88,11 @@ class Schema(BaseModel):
     name: str
     fields: list[Field]
 
+    @property
+    def size(self) -> int:
+        """Size in bytes on the wire (fields are packed, no padding)."""
+        return sum(field.type.size for field in self.fields)
+
 
 class Schemas(BaseModel):
     model_config = ConfigDict(extra="forbid")

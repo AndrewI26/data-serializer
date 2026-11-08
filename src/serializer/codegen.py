@@ -1,5 +1,6 @@
 from enum import Enum
 from pathlib import Path
+from typing import assert_never
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -15,7 +16,7 @@ class Target(Enum):
     def file_extension(self) -> str:
         match self:
             case Target.CPP:
-                return "cpp"
+                return "hpp"  # header-only: templates must be visible to callers
             case Target.RUST:
                 return "rs"
 
@@ -39,26 +40,64 @@ def generate(schemas: Schemas, output: Path, target: Target, mode: UsageMode) ->
         autoescape=False,
         trim_blocks=True,
         lstrip_blocks=True,
+        keep_trailing_newline=True,
     )
+
+    output.mkdir(parents=True, exist_ok=True)
+
+    _generate_headers(env, schemas, output, target)
 
     match mode:
         case UsageMode.SERIALIZATION:
-            template = env.get_template(
-                f"{target.folder_name()}/serialize.{target.file_extension()}.j2"
-            )
-            rendered = template.render(schemas=schemas.schemas)
-
-            output.mkdir(parents=True, exist_ok=True)
-
-            output_file = output / f"serializer.{target.file_extension}"
-            output_file.write_text(rendered)
+            _generate_serializer(env, schemas, output, target)
         case UsageMode.DESERIALIZE:
-            template = env.get_template(
-                f"{target.folder_name()}/deserialize.{target.file_extension()}.j2"
-            )
-            rendered = template.render(schemas=schemas.schemas)
+            _generate_deserializer(env, schemas, output, target)
+        case UsageMode.BOTH:
+            _generate_serializer(env, schemas, output, target)
+            _generate_deserializer(env, schemas, output, target)
+        case _:
+            assert_never(mode)
 
-            output.mkdir(parents=True, exist_ok=True)
 
-            output_file = output / f"deserializer.{target.file_extension()}"
-            output_file.write_text(rendered)
+def _generate_headers(
+    env: Environment, schemas: Schemas, output: Path, target: Target
+) -> None:
+    match target:
+        case Target.CPP:
+            _render_to_file(env, schemas, "cpp/schemas.hpp.j2", output / "schemas.hpp")
+        case Target.RUST:
+            pass  # Rust has no header files.
+        case _:
+            assert_never(target)
+
+
+def _generate_serializer(
+    env: Environment, schemas: Schemas, output: Path, target: Target
+) -> None:
+    ext = target.file_extension()
+    _render_to_file(
+        env,
+        schemas,
+        f"{target.folder_name()}/serialize.{ext}.j2",
+        output / f"serializer.{ext}",
+    )
+
+
+def _generate_deserializer(
+    env: Environment, schemas: Schemas, output: Path, target: Target
+) -> None:
+    ext = target.file_extension()
+    _render_to_file(
+        env,
+        schemas,
+        f"{target.folder_name()}/deserialize.{ext}.j2",
+        output / f"deserializer.{ext}",
+    )
+
+
+def _render_to_file(
+    env: Environment, schemas: Schemas, template_path: str, output_file: Path
+) -> None:
+    template = env.get_template(template_path)
+    rendered = template.render(schemas=schemas.schemas)
+    output_file.write_text(rendered)

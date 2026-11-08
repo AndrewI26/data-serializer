@@ -6,8 +6,6 @@ from pydantic import BaseModel, ConfigDict
 from serializer.codegen import Target, UsageMode, generate
 from serializer.schema import Schemas
 
-HELP_MSG = "Usage: uv run serializer path/to/schema.yaml"
-
 
 class CLIArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -53,7 +51,7 @@ def main():
 
     data = Schemas.from_yaml(Path(args.filename))
 
-    generate(data, args.output, args.target)
+    generate(data, args.output, args.target, args.mode)
 
 
 if __name__ == "__main__":

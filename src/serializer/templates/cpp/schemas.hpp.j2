@@ -1,6 +1,19 @@
 // AUTO-GENERATED do not edit
 
+#pragma once
+
 #include <cstdint>
+#include <limits>
+
+// The wire format is the in-memory layout: little-endian, IEEE 754 floats.
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error "Generated serializers require a little-endian target"
+#endif
+static_assert(std::numeric_limits<float>::is_iec559, "float must be IEEE 754");
+static_assert(std::numeric_limits<double>::is_iec559, "double must be IEEE 754");
+
+// Packed so no padding bytes are sent over the wire.
+#pragma pack(push, 1)
 
 {% for schema in schemas %}
 struct {{ schema.name }} {
@@ -8,4 +21,7 @@ struct {{ schema.name }} {
     {{ field.type.cpp }} {{ field.name }};
     {% endfor %}
 };
+static_assert(sizeof({{ schema.name }}) == {{ schema.size }}, "{{ schema.name }} has unexpected size");
+
 {% endfor %}
+#pragma pack(pop)
