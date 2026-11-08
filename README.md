@@ -1,6 +1,6 @@
-# High Perf Data Serilzation
+# Binary Order Entry (BOE) Codegen
 
-Data serilization framework for high preformance applications.
+Data serilization framework for high performance applications.
 
 Define the shape of your data in a yaml file then use the python library to generate code for serilzation and deserilzation in C++ or Rust.
 
@@ -13,34 +13,6 @@ uv run schema-serializer examples/simple.yaml -t rust    # Rust
 ```
 
 Both targets produce the same wire format: fields in declared order, packed with no padding, little-endian.
-
-## Benchmarks
-
-Benchmarks live in `bench/`, with one subfolder per target language. All languages share the message definitions in `bench/bench_schemas.yaml`, and each build regenerates its code from that schema whenever the schema, templates or generator change.
-
-```bash
-uv run bench             # build, then run all benchmarks in both languages
-uv run bench serialize   # serialize/deserialize vs. a raw byte-copy baseline
-uv run bench udp         # full send/receive over loopback UDP
-uv run bench -l cpp      # only C++ (or -l rust)
-uv run bench --native    # optimize for this CPU
-```
-
-- **C++** (`bench/cpp/`): [Google Benchmark](https://github.com/google/benchmark), fetched automatically if not installed. Requires CMake (and Ninja, optionally). `--no-build` skips rebuilding.
-- **Rust** (`bench/rust/`): [Criterion](https://github.com/bheisler/criterion.rs). Requires Cargo. Criterion compares each run against the previous one automatically.
-
-With a single language, any other arguments go to that language's benchmark tool:
-
-```bash
-uv run bench -l cpp serialize --benchmark_filter=Mixed
-uv run bench -l rust serialize Mixed
-```
-
-To compare C++ changes against a baseline, save results to JSON and diff them with Google Benchmark's `compare.py`:
-
-```bash
-uv run bench -l cpp serialize --benchmark_repetitions=10 --benchmark_report_aggregates_only=true --benchmark_out=before.json
-```
 
 ## Schema Options
 
@@ -77,3 +49,31 @@ schemas:
 | `i64` | 8 bytes | Signed 64-bit integer |
 | `f32` | 4 bytes | 32-bit floating-point number |
 | `f64` | 8 bytes | 64-bit floating-point number |
+
+## Benchmarks
+
+Benchmarks live in `bench/`, with one subfolder per target language. All languages share the message definitions in `bench/bench_schemas.yaml`, and each build regenerates its code from that schema whenever the schema, templates or generator change.
+
+```bash
+uv run bench             # build, then run all benchmarks in both languages
+uv run bench serialize   # serialize/deserialize vs. a raw byte-copy baseline
+uv run bench udp         # full send/receive over loopback UDP
+uv run bench -l cpp      # only C++ (or -l rust)
+uv run bench --native    # optimize for this CPU
+```
+
+- **C++** (`bench/cpp/`): [Google Benchmark](https://github.com/google/benchmark), fetched automatically if not installed. Requires CMake (and Ninja, optionally). `--no-build` skips rebuilding.
+- **Rust** (`bench/rust/`): [Criterion](https://github.com/bheisler/criterion.rs). Requires Cargo. Criterion compares each run against the previous one automatically.
+
+With a single language, any other arguments go to that language's benchmark tool:
+
+```bash
+uv run bench -l cpp serialize --benchmark_filter=Mixed
+uv run bench -l rust serialize Mixed
+```
+
+To compare C++ changes against a baseline, save results to JSON and diff them with Google Benchmark's `compare.py`:
+
+```bash
+uv run bench -l cpp serialize --benchmark_repetitions=10 --benchmark_report_aggregates_only=true --benchmark_out=before.json
+```
