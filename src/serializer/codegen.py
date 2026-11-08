@@ -45,7 +45,7 @@ def generate(schemas: Schemas, output: Path, target: Target, mode: UsageMode) ->
 
     output.mkdir(parents=True, exist_ok=True)
 
-    _generate_headers(env, schemas, output, target)
+    _generate_types(env, schemas, output, target)
 
     match mode:
         case UsageMode.SERIALIZATION:
@@ -59,16 +59,17 @@ def generate(schemas: Schemas, output: Path, target: Target, mode: UsageMode) ->
             assert_never(mode)
 
 
-def _generate_headers(
+def _generate_types(
     env: Environment, schemas: Schemas, output: Path, target: Target
 ) -> None:
-    match target:
-        case Target.CPP:
-            _render_to_file(env, schemas, "cpp/schemas.hpp.j2", output / "schemas.hpp")
-        case Target.RUST:
-            pass  # Rust has no header files.
-        case _:
-            assert_never(target)
+    """Generates the message type definitions, needed in every mode."""
+    ext = target.file_extension()
+    _render_to_file(
+        env,
+        schemas,
+        f"{target.folder_name()}/schemas.{ext}.j2",
+        output / f"schemas.{ext}",
+    )
 
 
 def _generate_serializer(

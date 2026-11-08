@@ -93,6 +93,16 @@ class Schema(BaseModel):
         """Size in bytes on the wire (fields are packed, no padding)."""
         return sum(field.type.size for field in self.fields)
 
+    @property
+    def layout(self) -> list[tuple[Field, int]]:
+        """Each field with its byte offset on the wire."""
+        offsets = []
+        offset = 0
+        for field in self.fields:
+            offsets.append((field, offset))
+            offset += field.type.size
+        return offsets
+
 
 class Schemas(BaseModel):
     model_config = ConfigDict(extra="forbid")

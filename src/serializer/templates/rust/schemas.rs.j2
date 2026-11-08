@@ -1,0 +1,23 @@
+// AUTO-GENERATED do not edit
+//
+// Wire format: fields in declared order, packed (no padding), little-endian.
+
+/// A message type with a fixed size on the wire.
+pub trait Message: Sized {
+    /// Size of the message on the wire, in bytes.
+    const SIZE: usize;
+}
+
+{% for schema in schemas %}
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct {{ schema.name }} {
+    {% for field in schema.fields %}
+    pub {{ field.name }}: {{ field.type.rust }},
+    {% endfor %}
+}
+
+impl Message for {{ schema.name }} {
+    const SIZE: usize = {{ schema.size }};
+}
+
+{% endfor %}

@@ -1,0 +1,70 @@
+# Schemas shared by the benchmarks for every target language, chosen to cover
+# a range of message sizes.
+schemas:
+  # 4 bytes: smallest realistic message.
+  - name: Tiny
+    fields:
+      - name: x
+        type: i16
+      - name: y
+        type: i16
+
+  # 42 bytes: one field of every type, deliberately unaligned order.
+  - name: Mixed
+    fields:
+      - name: f_u8
+        type: u8
+      - name: f_u64
+        type: u64
+      - name: f_i16
+        type: i16
+      - name: f_f64
+        type: f64
+      - name: f_i8
+        type: i8
+      - name: f_u32
+        type: u32
+      - name: f_i64
+        type: i64
+      - name: f_u16
+        type: u16
+      - name: f_f32
+        type: f32
+      - name: f_i32
+        type: i32
+
+  # 128 bytes: a larger payload (16 x f64).
+  - name: Wide
+    fields:
+      - name: v0
+        type: f64
+      - name: v1
+        type: f64
+      - name: v2
+        type: f64
+      - name: v3
+        type: f64
+      - name: v4
+        type: f64
+      - name: v5
+        type: f64
+      - name: v6
+        type: f64
+      - name: v7
+        type: f64
+      - name: v8
+        type: f64
+      - name: v9
+        type: f64
+      - name: v10
+        type: f64
+      - name: v11
+        type: f64
+      - name: v12
+        type: f64
+      - name: v13
+        type: f64
+      - name: v14
+        type: f64
+      - name: v15
+        type: f64

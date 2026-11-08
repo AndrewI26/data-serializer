@@ -1,0 +1,17 @@
+[package]
+name = "bin-serializer-bench"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Benchmarks for the generated Rust serializers."
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "serialize_bench"
+harness = false
+
+[[bench]]
+name = "udp_bench"
+harness = false

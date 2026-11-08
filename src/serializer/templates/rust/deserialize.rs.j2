@@ -1,0 +1,25 @@
+// AUTO-GENERATED do not edit
+
+use super::schemas::*;
+
+pub trait Deserialize: Message {
+    /// Reads a message from `buf`. Returns `None` if `buf` holds fewer than
+    /// `Self::SIZE` bytes.
+    fn deserialize(buf: &[u8]) -> Option<Self>;
+}
+
+{% for schema in schemas %}
+impl Deserialize for {{ schema.name }} {
+    #[inline]
+    fn deserialize(buf: &[u8]) -> Option<Self> {
+        // Fixed-size view: one length check, then no per-field bounds checks.
+        let buf: &[u8; {{ schema.size }}] = buf.get(..{{ schema.size }})?.try_into().ok()?;
+        Some(Self {
+            {% for field, offset in schema.layout %}
+            {{ field.name }}: {{ field.type.rust }}::from_le_bytes(buf[{{ offset }}..{{ offset + field.type.size }}].try_into().unwrap()),
+            {% endfor %}
+        })
+    }
+}
+
+{% endfor %}

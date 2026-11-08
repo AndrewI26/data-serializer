@@ -1,0 +1,24 @@
+// AUTO-GENERATED do not edit
+
+use super::schemas::*;
+
+pub trait Serialize: Message {
+    /// Writes the message into `buf`. Returns the number of bytes written,
+    /// or `None` if `buf` is too small.
+    fn serialize(&self, buf: &mut [u8]) -> Option<usize>;
+}
+
+{% for schema in schemas %}
+impl Serialize for {{ schema.name }} {
+    #[inline]
+    fn serialize(&self, buf: &mut [u8]) -> Option<usize> {
+        // Fixed-size view: one length check, then no per-field bounds checks.
+        let buf: &mut [u8; {{ schema.size }}] = buf.get_mut(..{{ schema.size }})?.try_into().ok()?;
+        {% for field, offset in schema.layout %}
+        buf[{{ offset }}..{{ offset + field.type.size }}].copy_from_slice(&self.{{ field.name }}.to_le_bytes());
+        {% endfor %}
+        Some({{ schema.size }})
+    }
+}
+
+{% endfor %}
