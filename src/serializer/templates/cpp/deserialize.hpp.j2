@@ -5,14 +5,12 @@
 #include <cstddef>
 #include <cstring>
 #include <optional>
-#include <type_traits>
 
 #include "schemas.hpp"
 
 // Reads a T from buf. Returns std::nullopt if buf holds fewer than sizeof(T) bytes.
-template <typename T>
+template <WireMessage T>
 inline std::optional<T> deserialize(const std::byte* buf, std::size_t len) noexcept {
-    static_assert(std::is_trivially_copyable_v<T>);
     if (len < sizeof(T)) {
         return std::nullopt;
     }
