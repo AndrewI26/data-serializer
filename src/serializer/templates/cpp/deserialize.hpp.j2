@@ -20,3 +20,20 @@ inline std::optional<T> deserialize(const std::byte* buf, std::size_t len) noexc
     std::memcpy(&msg, buf, sizeof(T));
     return msg;
 }
+{% if endian.value == "big" %}
+{% for schema in schemas %}
+
+template <>
+inline std::optional<{{ schema.name }}> deserialize<{{ schema.name }}>(const std::byte* buf, std::size_t len) noexcept {
+    if (len < sizeof({{ schema.name }})) {
+        return std::nullopt;
+    }
+    {{ schema.name }} msg;
+    std::memcpy(&msg, buf, sizeof(msg));
+    {% for field in schema.fields if not field.is_variable and field.total_size > 1 %}
+    msg.{{ field.name }} = byteswap(msg.{{ field.name }});
+    {% endfor %}
+    return msg;
+}
+{% endfor %}
+{% endif %}

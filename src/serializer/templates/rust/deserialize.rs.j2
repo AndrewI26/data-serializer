@@ -16,7 +16,11 @@ impl Deserialize for {{ schema.name }} {
         let buf: &[u8; {{ schema.size }}] = buf.get(..{{ schema.size }})?.try_into().ok()?;
         Some(Self {
             {% for field, offset in schema.layout %}
-            {{ field.name }}: {{ field.type.rust }}::from_le_bytes(buf[{{ offset }}..{{ offset + field.type.size }}].try_into().unwrap()),
+            {% if field.is_variable %}
+            {{ field.name }}: buf[{{ offset }}..{{ offset + field.total_size }}].try_into().unwrap(),
+            {% else %}
+            {{ field.name }}: {{ field.rust }}::from_{{ endian.short }}_bytes(buf[{{ offset }}..{{ offset + field.total_size }}].try_into().unwrap()),
+            {% endif %}
             {% endfor %}
         })
     }

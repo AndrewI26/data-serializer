@@ -1,6 +1,6 @@
 // AUTO-GENERATED do not edit
 //
-// Wire format: fields in declared order, packed (no padding), little-endian.
+// Wire format: fields in declared order, packed (no padding), {{ endian.value }}-endian.
 
 /// A message type with a fixed size on the wire.
 pub trait Message: Sized {
@@ -9,11 +9,25 @@ pub trait Message: Sized {
 }
 
 {% for schema in schemas %}
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct {{ schema.name }} {
     {% for field in schema.fields %}
-    pub {{ field.name }}: {{ field.type.rust }},
+    pub {{ field.name }}: {{ field.rust }},
     {% endfor %}
+}
+
+impl Default for {{ schema.name }} {
+    fn default() -> Self {
+        Self {
+            {% for field in schema.fields %}
+            {% if field.is_variable %}
+            {{ field.name }}: [Default::default(); {{ field.size }}],
+            {% else %}
+            {{ field.name }}: Default::default(),
+            {% endif %}
+            {% endfor %}
+        }
+    }
 }
 
 impl Message for {{ schema.name }} {

@@ -2,23 +2,49 @@
 
 #pragma once
 
+{% if endian.value == "big" %}
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <type_traits>
+{% endif %}
 #include <cstdint>
 #include <limits>
 
+{% if endian.value == "big" %}
+// The wire format is big-endian, IEEE 754 floats. Multi-byte fields are byte-swapped from the little-endian host.
+{% else %}
 // The wire format is the in-memory layout: little-endian, IEEE 754 floats.
+{% endif %}
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #error "Generated serializers require a little-endian target"
 #endif
 static_assert(std::numeric_limits<float>::is_iec559, "float must be IEEE 754");
 static_assert(std::numeric_limits<double>::is_iec559, "double must be IEEE 754");
 
+{% if endian.value == "big" %}
+template <typename T>
+inline T byteswap(T value) noexcept {
+    static_assert(std::is_trivially_copyable_v<T>);
+    std::array<unsigned char, sizeof(T)> bytes;
+    std::memcpy(bytes.data(), &value, sizeof(T));
+    std::reverse(bytes.begin(), bytes.end());
+    std::memcpy(&value, bytes.data(), sizeof(T));
+    return value;
+}
+
+{% endif %}
 // Packed so no padding bytes are sent over the wire.
 #pragma pack(push, 1)
 
 {% for schema in schemas %}
 struct {{ schema.name }} {
     {% for field in schema.fields %}
-    {{ field.type.cpp }} {{ field.name }};
+    {% if field.is_variable %}
+    {{ field.type.element.cpp }} {{ field.name }}[{{ field.size }}];
+    {% else %}
+    {{ field.cpp }} {{ field.name }};
+    {% endif %}
     {% endfor %}
 };
 static_assert(sizeof({{ schema.name }}) == {{ schema.size }}, "{{ schema.name }} has unexpected size");

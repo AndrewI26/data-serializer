@@ -15,7 +15,11 @@ impl Serialize for {{ schema.name }} {
         // Fixed-size view: one length check, then no per-field bounds checks.
         let buf: &mut [u8; {{ schema.size }}] = buf.get_mut(..{{ schema.size }})?.try_into().ok()?;
         {% for field, offset in schema.layout %}
-        buf[{{ offset }}..{{ offset + field.type.size }}].copy_from_slice(&self.{{ field.name }}.to_le_bytes());
+        {% if field.is_variable %}
+        buf[{{ offset }}..{{ offset + field.total_size }}].copy_from_slice(&self.{{ field.name }});
+        {% else %}
+        buf[{{ offset }}..{{ offset + field.total_size }}].copy_from_slice(&self.{{ field.name }}.to_{{ endian.short }}_bytes());
+        {% endif %}
         {% endfor %}
         Some({{ schema.size }})
     }

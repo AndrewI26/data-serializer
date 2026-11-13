@@ -100,5 +100,5 @@ def _render_to_file(
     env: Environment, schemas: Schemas, template_path: str, output_file: Path
 ) -> None:
     template = env.get_template(template_path)
-    rendered = template.render(schemas=schemas.schemas)
+    rendered = template.render(schemas=schemas.schemas, endian=schemas.endian)
     output_file.write_text(rendered)

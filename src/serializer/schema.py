@@ -1,12 +1,27 @@
 from enum import Enum
 from pathlib import Path
-from typing import Self
+from typing import Annotated, Any, Literal, Self, assert_never
 
 import yaml
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Discriminator, PositiveInt, Tag
 
 
-class FieldType(str, Enum):
+class FieldType:
+    @property
+    def size(self) -> int:
+        raise NotImplementedError
+
+    @property
+    def cpp(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def rust(self) -> str:
+        raise NotImplementedError
+
+
+class FixedType(FieldType, Enum):
+    CHAR = "char"
     U8 = "u8"
     U16 = "u16"
     U32 = "u32"
@@ -20,93 +35,191 @@ class FieldType(str, Enum):
 
     @property
     def cpp(self) -> str:
-        return _CPP_TYPE[self]
+        match self:
+            case FixedType.CHAR:
+                return "char"
+            case FixedType.U8:
+                return "uint8_t"
+            case FixedType.U16:
+                return "uint16_t"
+            case FixedType.U32:
+                return "uint32_t"
+            case FixedType.U64:
+                return "uint64_t"
+            case FixedType.I8:
+                return "int8_t"
+            case FixedType.I16:
+                return "int16_t"
+            case FixedType.I32:
+                return "int32_t"
+            case FixedType.I64:
+                return "int64_t"
+            case FixedType.F32:
+                return "float"
+            case FixedType.F64:
+                return "double"
+            case _:
+                assert_never(self)
 
     @property
     def rust(self) -> str:
-        return _RUST_TYPE[self]
+        match self:
+            case FixedType.CHAR:
+                return "u8"
+            case FixedType.U8:
+                return "u8"
+            case FixedType.U16:
+                return "u16"
+            case FixedType.U32:
+                return "u32"
+            case FixedType.U64:
+                return "u64"
+            case FixedType.I8:
+                return "i8"
+            case FixedType.I16:
+                return "i16"
+            case FixedType.I32:
+                return "i32"
+            case FixedType.I64:
+                return "i64"
+            case FixedType.F32:
+                return "f32"
+            case FixedType.F64:
+                return "f64"
+            case _:
+                assert_never(self)
 
     @property
     def size(self) -> int:
-        return _SIZE[self]
+        match self:
+            case FixedType.CHAR | FixedType.U8 | FixedType.I8:
+                return 1
+            case FixedType.U16 | FixedType.I16:
+                return 2
+            case FixedType.U32 | FixedType.I32 | FixedType.F32:
+                return 4
+            case FixedType.U64 | FixedType.I64 | FixedType.F64:
+                return 8
+            case _:
+                assert_never(self)
 
 
-_CPP_TYPE = {
-    FieldType.U8: "uint8_t",
-    FieldType.U16: "uint16_t",
-    FieldType.U32: "uint32_t",
-    FieldType.U64: "uint64_t",
-    FieldType.I8: "int8_t",
-    FieldType.I16: "int16_t",
-    FieldType.I32: "int32_t",
-    FieldType.I64: "int64_t",
-    FieldType.F32: "float",
-    FieldType.F64: "double",
-}
+class VariableType(Enum):
+    STRING = "string"
+
+    @property
+    def element(self) -> FixedType:
+        match self:
+            case VariableType.STRING:
+                return FixedType.CHAR
+            case _:
+                assert_never(self)
 
 
-_RUST_TYPE = {
-    FieldType.U8: "u8",
-    FieldType.U16: "u16",
-    FieldType.U32: "u32",
-    FieldType.U64: "u64",
-    FieldType.I8: "i8",
-    FieldType.I16: "i16",
-    FieldType.I32: "i32",
-    FieldType.I64: "i64",
-    FieldType.F32: "f32",
-    FieldType.F64: "f64",
-}
-
-
-_SIZE = {
-    FieldType.U8: 1,
-    FieldType.I8: 1,
-    FieldType.U16: 2,
-    FieldType.I16: 2,
-    FieldType.U32: 4,
-    FieldType.I32: 4,
-    FieldType.F32: 4,
-    FieldType.U64: 8,
-    FieldType.I64: 8,
-    FieldType.F64: 8,
-}
-
-assert set(_CPP_TYPE) == set(_RUST_TYPE) == set(_SIZE) == set(FieldType)
-
-
-class Field(BaseModel):
+class FixedField(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str
-    type: FieldType
+    type: FixedType
+
+    @property
+    def is_variable(self) -> bool:
+        return False
+
+    @property
+    def total_size(self) -> int:
+        return self.type.size
+
+    @property
+    def cpp(self) -> str:
+        return self.type.cpp
+
+    @property
+    def rust(self) -> str:
+        return self.type.rust
+
+
+class VariableField(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    type: VariableType
+    size: PositiveInt
+
+    @property
+    def is_variable(self) -> bool:
+        return True
+
+    @property
+    def total_size(self) -> int:
+        return self.type.element.size * self.size
+
+    @property
+    def cpp(self) -> str:
+        return f"{self.type.element.cpp}[{self.size}]"
+
+    @property
+    def rust(self) -> str:
+        return f"[{self.type.element.rust}; {self.size}]"
+
+
+_VARIABLE_TYPE_NAMES = {t.value for t in VariableType}
+
+
+def _field_kind(value: Any) -> Literal["fixed", "variable"]:
+    field_type = value.get("type") if isinstance(value, dict) else value.type
+    if isinstance(field_type, VariableType) or field_type in _VARIABLE_TYPE_NAMES:
+        return "variable"
+    return "fixed"
+
+
+SchemaField = Annotated[
+    Annotated[FixedField, Tag("fixed")] | Annotated[VariableField, Tag("variable")],
+    Discriminator(_field_kind),
+]
 
 
 class Schema(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str
-    fields: list[Field]
+    fields: list[SchemaField]
 
     @property
     def size(self) -> int:
         """Size in bytes on the wire (fields are packed, no padding)."""
-        return sum(field.type.size for field in self.fields)
+        return sum(field.total_size for field in self.fields)
 
     @property
-    def layout(self) -> list[tuple[Field, int]]:
+    def layout(self) -> list[tuple[SchemaField, int]]:
         """Each field with its byte offset on the wire."""
         offsets = []
         offset = 0
         for field in self.fields:
             offsets.append((field, offset))
-            offset += field.type.size
+            offset += field.total_size
         return offsets
+
+
+class Endian(Enum):
+    LITTLE = "little"
+    BIG = "big"
+
+    @property
+    def short(self) -> str:
+        match self:
+            case Endian.LITTLE:
+                return "le"
+            case Endian.BIG:
+                return "be"
+            case _:
+                assert_never(self)
 
 
 class Schemas(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    endian: Endian = Endian.LITTLE
     schemas: list[Schema]
 
     @classmethod

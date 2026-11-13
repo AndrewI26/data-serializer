@@ -1,0 +1,241 @@
+endian: big
+schemas:
+  - name: MoldUdp64Header
+    fields:
+      - name: session
+        type: string
+        size: 10
+      - name: sequence_number
+        type: u64
+      - name: message_count
+        type: u16
+
+  - name: SystemEvent
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: event_code
+        type: char
+
+  - name: StockDirectory
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: stock
+        type: string
+        size: 8
+      - name: market_category
+        type: char
+      - name: financial_status_indicator
+        type: char
+      - name: round_lot_size
+        type: u32
+      - name: round_lots_only
+        type: char
+      - name: issue_classification
+        type: char
+      - name: issue_sub_type
+        type: string
+        size: 2
+      - name: authenticity
+        type: char
+      - name: short_sale_threshold_indicator
+        type: char
+      - name: ipo_flag
+        type: char
+      - name: luld_reference_price_tier
+        type: char
+      - name: etp_flag
+        type: char
+      - name: etp_leverage_factor
+        type: u32
+      - name: inverse_indicator
+        type: char
+
+  - name: AddOrder
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+      - name: buy_sell_indicator
+        type: char
+      - name: shares
+        type: u32
+      - name: stock
+        type: string
+        size: 8
+      - name: price
+        type: u32
+
+  - name: AddOrderMpid
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+      - name: buy_sell_indicator
+        type: char
+      - name: shares
+        type: u32
+      - name: stock
+        type: string
+        size: 8
+      - name: price
+        type: u32
+      - name: attribution
+        type: string
+        size: 4
+
+  - name: OrderExecuted
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+      - name: executed_shares
+        type: u32
+      - name: match_number
+        type: u64
+
+  - name: OrderExecutedWithPrice
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+      - name: executed_shares
+        type: u32
+      - name: match_number
+        type: u64
+      - name: printable
+        type: char
+      - name: execution_price
+        type: u32
+
+  - name: OrderCancel
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+      - name: cancelled_shares
+        type: u32
+
+  - name: OrderDelete
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+
+  - name: OrderReplace
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: original_order_reference_number
+        type: u64
+      - name: new_order_reference_number
+        type: u64
+      - name: shares
+        type: u32
+      - name: price
+        type: u32
+
+  - name: Trade
+    fields:
+      - name: message_type
+        type: char
+      - name: stock_locate
+        type: u16
+      - name: tracking_number
+        type: u16
+      - name: timestamp_high
+        type: u16
+      - name: timestamp_low
+        type: u32
+      - name: order_reference_number
+        type: u64
+      - name: buy_sell_indicator
+        type: char
+      - name: shares
+        type: u32
+      - name: stock
+        type: string
+        size: 8
+      - name: price
+        type: u32
+      - name: match_number
+        type: u64

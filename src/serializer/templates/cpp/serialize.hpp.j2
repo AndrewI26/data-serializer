@@ -18,3 +18,20 @@ inline std::size_t serialize(const T& msg, std::byte* buf, std::size_t buf_len) 
     std::memcpy(buf, &msg, sizeof(T));
     return sizeof(T);
 }
+{% if endian.value == "big" %}
+{% for schema in schemas %}
+
+template <>
+inline std::size_t serialize<{{ schema.name }}>(const {{ schema.name }}& msg, std::byte* buf, std::size_t buf_len) noexcept {
+    if (buf_len < sizeof({{ schema.name }})) {
+        return 0;
+    }
+    {{ schema.name }} wire = msg;
+    {% for field in schema.fields if not field.is_variable and field.total_size > 1 %}
+    wire.{{ field.name }} = byteswap(wire.{{ field.name }});
+    {% endfor %}
+    std::memcpy(buf, &wire, sizeof(wire));
+    return sizeof(wire);
+}
+{% endfor %}
+{% endif %}

@@ -12,32 +12,32 @@ uv run schema-serializer examples/simple.yaml            # C++ (default)
 uv run schema-serializer examples/simple.yaml -t rust    # Rust
 ```
 
-Both targets produce the same wire format: fields in declared order, packed with no padding, little-endian.
+Both targets produce the same wire format: fields in declared order, packed with no padding, little-endian by default or big-endian with `endian: big`.
+
+`examples/itch.yaml` defines messages from Nasdaq's [TotalView-ITCH 5.0](https://nasdaqtrader.com/content/technicalsupport/specifications/dataproducts/NQTVITCHspecification.pdf) market data feed.
 
 ## Schema Options
 
 Every schema must be organized as follows:
 
 ```yaml
+[endian: little | big]
 schemas:
   - name: <schema_name>
     fields:
       - name: <field_name>
         type: <type>
-      - name: <field_name>
-        type: <type>
-  - name: <schema_name>
-    fields:
-      - name: <field_name>
-        type: <type>
-      - name: <field_name>
-        type: <type>
+        [size: <size>]
 ```
 
-`<schema_name>` and `<field_name>` can be replaced with any string of chars and `_`, no spaces. These will be the field names used on the deserialized data.
+`<schema_name>` and `<field_name>` can be replaced with any string of chars and `_`, no spaces. These will be the field names used on the deserialized data. `<size>` must be a positive integer and can only be used with `string` field.
+
+`endian` sets the byte order of multi-byte numbers on the wire for every schema in the file. It defaults to `little`, which lets C++ copy each struct as is. With `big`, the generated code byte-swaps each multi-byte field when serializing and deserializing.
 
 | Type | Size | Description |
 | ------ | ------ | ------------- |
+| `char` | 1 bytes | ASCII 8-bit charecter |
+| `string` | n bytes | Variable length string |
 | `u8` | 1 byte | Unsigned 8-bit integer |
 | `u16` | 2 bytes | Unsigned 16-bit integer |
 | `u32` | 4 bytes | Unsigned 32-bit integer |
@@ -51,28 +51,25 @@ schemas:
 
 ## Benchmarks
 
-Benchmarks live in `bench/`, with one subfolder per target language. All languages share the message definitions in `bench/bench_schemas.yaml`, and each build regenerates its code from that schema whenever the schema, templates or generator change.
+Benchmarks live in `bench/cpp/` and use the message definitions in `bench/bench_schemas.yaml`. Each build regenerates its code from that schema whenever the schema, templates or generator change.
 
 ```bash
-uv run bench             # build, then run all benchmarks in both languages
+uv run bench             # build, then run all benchmarks
 uv run bench serialize   # serialize/deserialize vs. a raw byte-copy baseline
 uv run bench udp         # full send/receive over loopback UDP
-uv run bench -l cpp      # only C++ (or -l rust)
 uv run bench --native    # optimize for this CPU
 ```
 
-- **C++** (`bench/cpp/`): [Google Benchmark](https://github.com/google/benchmark), fetched automatically if not installed. Requires CMake (and Ninja, optionally). `--no-build` skips rebuilding.
-- **Rust** (`bench/rust/`): [Criterion](https://github.com/bheisler/criterion.rs). Requires Cargo. Criterion compares each run against the previous one automatically.
+They use [Google Benchmark](https://github.com/google/benchmark), fetched automatically if not installed. Requires CMake (and Ninja, optionally). `--no-build` skips rebuilding.
 
-With a single language, any other arguments go to that language's benchmark tool:
+Any other arguments go to Google Benchmark:
 
 ```bash
-uv run bench -l cpp serialize --benchmark_filter=Mixed
-uv run bench -l rust serialize Mixed
+uv run bench serialize --benchmark_filter=Mixed
 ```
 
-To compare C++ changes against a baseline, save results to JSON and diff them with Google Benchmark's `compare.py`:
+To compare changes against a baseline, save results to JSON and diff them with Google Benchmark's `compare.py`:
 
 ```bash
-uv run bench -l cpp serialize --benchmark_repetitions=10 --benchmark_report_aggregates_only=true --benchmark_out=before.json
+uv run bench serialize --benchmark_repetitions=10 --benchmark_report_aggregates_only=true --benchmark_out=before.json
 ```
